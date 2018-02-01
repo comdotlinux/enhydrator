@@ -23,6 +23,7 @@ import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Types;
+import java.util.Objects;
 import java.util.function.Function;
 
 /**
@@ -43,31 +44,40 @@ public class ResultSetToEntries implements Function<ResultSet, Row> {
                 //from java.sql.Types
                 int columnType = metaData.getColumnType(i);
                 String columnName = metaData.getColumnName(i);
+                boolean nullable = ResultSetMetaData.columnNullable == metaData.isNullable(i);
                 switch (columnType) {
                     case Types.VARCHAR:
                     case Types.CHAR:
-                        row.addColumn(columnIndex, columnName, resultSet.getString(i));
+                        addNullableColumn(row, nullable, columnIndex, columnName, resultSet.getString(i));
                         break;
                     case Types.INTEGER:
-                        row.addColumn(columnIndex, columnName, resultSet.getInt(i));
+                        addNullableColumn(row, nullable, columnIndex, columnName, resultSet.getInt(i));
                         break;
                     case Types.DOUBLE:
-                        row.addColumn(columnIndex, columnName, resultSet.getDouble(i));
+                        addNullableColumn(row, nullable, columnIndex, columnName, resultSet.getDouble(i));
                         break;
                     case Types.BOOLEAN:
-                        row.addColumn(columnIndex, columnName, resultSet.getBoolean(i));
+                        addNullableColumn(row, nullable, columnIndex, columnName, resultSet.getBoolean(i));
                         break;
                     case Types.FLOAT:
-                        row.addColumn(columnIndex, columnName, resultSet.getFloat(i));
+                        addNullableColumn(row, nullable, columnIndex, columnName, resultSet.getFloat(i));
                         break;
                     default:
-                        row.addColumn(columnIndex, columnName, resultSet.getObject(i));
+                        addNullableColumn(row, nullable, columnIndex, columnName, resultSet.getObject(i));
                 }
             }
         } catch (SQLException ex) {
             throw new IllegalStateException("Problems accessing ResultSet", ex);
         }
         return row;
+    }
+
+    private <T> void addNullableColumn(Row row, boolean nullable, int columnIndex, String columnName, T value) {
+        if (nullable && Objects.isNull(value)) {
+            row.addNullColumn(columnIndex, columnName);
+        } else {
+            row.addColumn(columnIndex, columnName, value);
+        }
     }
 
 }

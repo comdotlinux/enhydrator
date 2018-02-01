@@ -5,3 +5,4 @@ target/
 /enhydrator/config/
 /enhydrator/*.sh
 /enhydrator/nbproject/
+/enhydrator/*.iml
